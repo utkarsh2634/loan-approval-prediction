@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Model Performance Dashboard{% endblock %}
+
+{% block content %}
+<div class="card-header" style="margin-bottom: 2rem;">
+    <h2>Decision Tree Model Diagnostics & Metrics</h2>
+    <p class="card-subtitle">Detailed evaluation metrics, baseline comparison, and visualizations generated at runtime</p>
+</div>
+
+<!-- Metrics Cards -->
+<section class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-title">Test Accuracy</div>
+        <div class="metric-value">{{ (metrics.get('test_accuracy', 0) * 100)|round(2) }}%</div>
+        <div class="metric-subtitle">Evaluated on 20% unseen test set</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-title">Majority Baseline</div>
+        <div class="metric-value" style="color: var(--text-muted);">{{ (metrics.get('baseline_accuracy', 0) * 100)|round(2) }}%</div>
+        <div class="metric-subtitle">Dummy majority classifier</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-title">Baseline Improvement</div>
+        <div class="metric-value" style="color: var(--success);">
+            +{{ ((metrics.get('test_accuracy', 0) - metrics.get('baseline_accuracy', 0)) * 100)|round(2) }}%
+        </div>
+        <div class="metric-subtitle">Lift over naive prediction</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-title">5-Fold Stratified CV</div>
+        <div class="metric-value">{{ (metrics.get('best_cv_accuracy', 0) * 100)|round(2) }}%</div>
+        <div class="metric-subtitle">Cross-validated train score</div>
+    </div>
+</section>
+
+<!-- Overfitting Analysis Note -->
+<div class="card" style="border-left: 4px solid var(--accent);">
+    <h3>🧠 Overfitting & Generalization Analysis</h3>
+    <p style="margin-top: 0.5rem; color: var(--text-main);">
+        An unrestricted, untuned Decision Tree achieved <strong>{{ (metrics.get('untuned_train_accuracy', 1.0) * 100)|round(2) }}%</strong> on the training set, but dropped to <strong>{{ (metrics.get('untuned_test_accuracy', 0.748) * 100)|round(2) }}%</strong> on the test set (an overfitting gap of {{ ((metrics.get('untuned_train_accuracy', 1.0) - metrics.get('untuned_test_accuracy', 0.748)) * 100)|round(2) }}%).
+    </p>
+    <p style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.95rem;">
+        By pruning the tree depth and enforcing minimum samples per leaf via 5-fold GridSearchCV, our tuned pipeline achieves <strong>{{ (metrics.get('train_accuracy', 0) * 100)|round(2) }}%</strong> train accuracy and <strong>{{ (metrics.get('test_accuracy', 0) * 100)|round(2) }}%</strong> test accuracy, eliminating the overfitting gap and generalizing effectively.
+    </p>
+</div>
+
+<!-- Classification Report & Confusion Matrix Section -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <!-- Classification Table -->
+    <div class="card" style="margin-bottom: 0;">
+        <div class="card-header">
+            <h3>Classification Report (Test Set)</h3>
+            <p class="card-subtitle">Precision, Recall, and F1-Scores across binary classes</p>
+        </div>
+        {% set cr = metrics.get('classification_report', {}) %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Class</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                    <th>F1-Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if 'Rejected (N)' in cr %}
+                <tr>
+                    <td><strong>Rejected (N)</strong></td>
+                    <td>{{ (cr['Rejected (N)']['precision'] * 100)|round(1) }}%</td>
+                    <td>{{ (cr['Rejected (N)']['recall'] * 100)|round(1) }}%</td>
+                    <td>{{ (cr['Rejected (N)']['f1-score'] * 100)|round(1) }}%</td>
+                </tr>
+                {% endif %}
+                {% if 'Approved (Y)' in cr %}
+                <tr>
+                    <td><strong>Approved (Y)</strong></td>
+                    <td>{{ (cr['Approved (Y)']['precision'] * 100)|round(1) }}%</td>
+                    <td>{{ (cr['Approved (Y)']['recall'] * 100)|round(1) }}%</td>
+                    <td>{{ (cr['Approved (Y)']['f1-score'] * 100)|round(1) }}%</td>
+                </tr>
+                {% endif %}
+                {% if 'weighted avg' in cr %}
+                <tr style="background: #f8fafc; font-weight: 600;">
+                    <td>Weighted Avg</td>
+                    <td>{{ (cr['weighted avg']['precision'] * 100)|round(1) }}%</td>
+                    <td>{{ (cr['weighted avg']['recall'] * 100)|round(1) }}%</td>
+                    <td>{{ (cr['weighted avg']['f1-score'] * 100)|round(1) }}%</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Confusion Matrix Image -->
+    <div class="card" style="margin-bottom: 0;">
+        <div class="card-header">
+            <h3>Confusion Matrix Heatmap</h3>
+            <p class="card-subtitle">True Positives, False Positives, True Negatives, False Negatives</p>
+        </div>
+        <img src="{{ url_for('serve_output_file', filename='confusion_matrix.png') }}" alt="Confusion Matrix" style="width: 100%; border-radius: var(--radius-sm);">
+    </div>
+</div>
+
+<!-- Model Interpretation Visuals -->
+<div class="card-header" style="margin-top: 2rem;">
+    <h2>Feature Importance & Architecture</h2>
+    <p class="card-subtitle">How the Decision Tree makes decisions</p>
+</div>
+
+<div class="chart-gallery">
+    <div class="chart-card">
+        <h4>Feature Importances</h4>
+        <img src="{{ url_for('serve_output_file', filename='feature_importance.png') }}" alt="Feature Importance">
+    </div>
+
+    <div class="chart-card">
+        <h4>Credit History Impact</h4>
+        <img src="{{ url_for('serve_output_file', filename='credit_history_vs_loan_status.png') }}" alt="Credit History vs Loan Status">
+    </div>
+
+    <div class="chart-card full-width-chart">
+        <h4>Fitted Decision Tree Architecture</h4>
+        <img src="{{ url_for('serve_output_file', filename='decision_tree.png') }}" alt="Decision Tree Visualization">
+    </div>
+</div>
+
+<!-- EDA Exploratory Charts -->
+<div class="card-header" style="margin-top: 2rem;">
+    <h2>Exploratory Data Analysis (EDA)</h2>
+    <p class="card-subtitle">Distributions and correlation patterns observed across applicant records</p>
+</div>
+
+<div class="chart-gallery">
+    <div class="chart-card">
+        <h4>Loan Status Distribution</h4>
+        <img src="{{ url_for('serve_output_file', filename='loan_status_distribution.png') }}" alt="Loan Status Distribution">
+    </div>
+
+    <div class="chart-card">
+        <h4>Applicant Income Distribution</h4>
+        <img src="{{ url_for('serve_output_file', filename='income_distribution.png') }}" alt="Income Distribution">
+    </div>
+
+    <div class="chart-card">
+        <h4>Loan Amount Distribution</h4>
+        <img src="{{ url_for('serve_output_file', filename='loan_amount_distribution.png') }}" alt="Loan Amount Distribution">
+    </div>
+
+    <div class="chart-card">
+        <h4>Approval Rate by Demographics</h4>
+        <img src="{{ url_for('serve_output_file', filename='demographic_approval_rates.png') }}" alt="Demographic Approval Rates">
+    </div>
+
+    <div class="chart-card full-width-chart">
+        <h4>Correlation Heatmap (Numeric Attributes)</h4>
+        <img src="{{ url_for('serve_output_file', filename='correlation_heatmap.png') }}" alt="Correlation Heatmap">
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+LOAN APPROVAL PREDICTION - CLASSIFICATION REPORT
+======================================================================
+
+Trained: 2026-10-31 08:28:40
+Best Model Selected: Random Forest
+Data Source: Real Kaggle Dataset (train.csv)
+Test Accuracy: 87.80%
+Baseline Accuracy: 69.11%
+ROC-AUC Score: 0.8780
+
+=== Random Forest Classification Report ===
+              precision    recall  f1-score   support
+
+Rejected (N)       0.96      0.63      0.76        38
+Approved (Y)       0.86      0.99      0.92        85
+
+    accuracy                           0.88       123
+   macro avg       0.91      0.81      0.84       123
+weighted avg       0.89      0.88      0.87       123
+
+
+=== Model Comparison Summary ===
+              Model  Accuracy (%)  F1-Score (%)  ROC-AUC  5-Fold CV (%)
+      Decision Tree         84.55         89.50   0.8297          79.82
+      Random Forest         87.80         91.80   0.8780          80.24
+Logistic Regression         86.18         90.81   0.8607          80.24

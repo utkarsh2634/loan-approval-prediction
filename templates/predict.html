@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}Predict Loan Approval{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <h2>Applicant Loan Assessment Form</h2>
+            <p class="card-subtitle">
+                Enter financial and demographic details to evaluate loan risk across all 11 underwriting features.
+            </p>
+        </div>
+
+        {% if errors.get('general') %}
+        <div class="alert alert-danger" style="margin-bottom: 1.5rem; padding: 1rem; background-color: #fde8e8; border: 1px solid #f8b4b4; border-radius: 6px; color: #9b1c1c;">
+            {{ errors.get('general') }}
+        </div>
+        {% endif %}
+
+        <form action="{{ url_for('predict') }}" method="POST" novalidate>
+            <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                
+                <!-- Financial Profile Column -->
+                <div class="form-section">
+                    <h3 style="font-size: 1.1rem; color: var(--text-heading, #1f2937); border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                        💰 Financial & Loan Details
+                    </h3>
+
+                    <!-- 1. ApplicantIncome -->
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="ApplicantIncome" style="font-weight: 600; display: block; margin-bottom: 0.35rem;">
+                            Applicant Monthly Income ($) <span style="color: red;">*</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            id="ApplicantIncome" 
+                            name="ApplicantIncome" 
+                            class="form-control" 
+                            value="{{ form_data.get('ApplicantIncome', '5500') }}"
+                            style="width: 100%; padding: 0.6rem; border: 1px solid {% if errors.get('ApplicantIncome') %}#e02424{% else %}#d1d5db{% endif %}; border-radius: 6px;"
+                            required
+                        >
+                        {% if errors.get('ApplicantIncome') %}
+                        <div class="error-msg" style="color: #e02424; font-size: 0.85rem; margin-top: 0.25rem;">
+                            {{ errors.get('ApplicantIncome') }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 2. CoapplicantIncome -->
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="CoapplicantIncome" style="font-weight: 600; display: block; margin-bottom: 0.35rem;">
+                            Co-applicant Monthly Income ($)
+                        </label>
+                        <input 
+                            type="text" 
+                            id="CoapplicantIncome" 
+                            name="CoapplicantIncome" 
+                            class="form-control" 
+                            value="{{ form_data.get('CoapplicantIncome', '1500') }}"
+                            style="width: 100%; padding: 0.6rem; border: 1px solid {% if errors.get('CoapplicantIncome') %}#e02424{% else %}#d1d5db{% endif %}; border-radius: 6px;"
+                        >
+                        {% if errors.get('CoapplicantIncome') %}
+                        <div class="error-msg" style="color: #e02424; font-size: 0.85rem; margin-top: 0.25rem;">
+                            {{ errors.get('CoapplicantIncome') }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 3. LoanAmount -->
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="LoanAmount" style="font-weight: 600; display: block; margin-bottom: 0.35rem;">
+                            Loan Amount ($ Thousands) <span style="color: red;">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="LoanAmount" 
+                            name="LoanAmount" 
+                            class="form-control" 
+                            placeholder="e.g. 130 for $130,000"
+                            value="{{ form_data.get('LoanAmount', '130') }}"
+                            style="width: 100%; padding: 0.6rem; border: 1px solid {% if errors.get('LoanAmount') %}#e02424{% else %}#d1d5db{% endif %}; border-radius: 6px;"
+                            required
+                        >
+                        {% if errors.get('LoanAmount') %}
+                        <div class="error-msg" style="color: #e02424; font-size: 0.85rem; margin-top: 0.25rem;">
+                            {{ errors.get('LoanAmount') }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 4. Loan_Amount_Term & Unit -->
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="Loan_Amount_Term" style="font-weight: 600; display: block; margin-bottom: 0.35rem;">
+                            Loan Term <span style="color: red;">*</span>
+                        </label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input 
+                                type="text" 
+                                id="Loan_Amount_Term" 
+                                name="Loan_Amount_Term" 
+                                class="form-control" 
+                                value="{{ form_data.get('Loan_Amount_Term', '360') }}"
+                                style="flex: 2; padding: 0.6rem; border: 1px solid {% if errors.get('Loan_Amount_Term') %}#e02424{% else %}#d1d5db{% endif %}; border-radius: 6px;"
+                                required
+                            >
+                            <select 
+                                name="Loan_Amount_Term_Unit" 
+                                class="form-control" 
+                                style="flex: 1; padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 6px;"
+                            >
+                                <option value="Months" {% if form_data.get('Loan_Amount_Term_Unit') == 'Months' %}selected{% endif %}>Months</option>
+                                <option value="Years" {% if form_data.get('Loan_Amount_Term_Unit') == 'Years' %}selected{% endif %}>Years</option>
+                            </select>
+                        </div>
+                        {% if errors.get('Loan_Amount_Term') %}
+                        <div class="error-msg" style="color: #e02424; font-size: 0.85rem; margin-top: 0.25rem;">
+                            {{ errors.get('Loan_Amount_Term') }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 5. Credit_History -->
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="Credit_History" style="font-weight: 600; display: block; margin-bottom: 0.35rem;">
+                            Credit History Guidelines Met? <span style="color: red;">*</span>
+                        </label>
+                        <select 
+                            id="Credit_History" 
+                            name="Credit_History" 
+                            class="form-control" 
+                            style="width: 100%; padding: 0.6rem; border: 1px solid {% if errors.get('Credit_History') %}#e02424{% else %}#d1d5db{% endif %}; border-radius: 6px;"
+                        >
+                            <option value="1" {% if form_data.get('Credit_History', '1') in ('1', '1.0', 1) %}selected{% endif %}>Yes (Meets Guidelines = 1.0)</option>
+                            <option value="0" {% if form_data.get('Credit_History') in ('0', '0.0', 0) %}selected{% endif %}>No (Adverse / No Record = 0.0)</option>
+                        </select>
+                        {% if errors.get('Credit_History') %}
+                        <div class="error-msg" style="color: #e02424; font-size: 0.85rem; margin-top: 0.25rem;">
+                            {{ errors.get('Credit_History') }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Personal Profile Column -->
+                <div class="form-section">
+                    <h3 style="font-size: 1.1rem; color: var(--text-heading, #1f2937); border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                        👤 Applicant Demographics & Background
+                    </h3>
+
+                    <!-- 6. Gender -->
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="Gender" style="font-weight: 600; display: block; margin-bottom: 0.35rem;">
+                            Gender
+                        </label>
+                        <select 
+                            id="Gender" 
+                            name="Gender" 
+                            class="form-control" 
+                            style="width: 100%; padding: 0.6rem; border: 1px solid {% if errors.get('Gender') %}#e02424{% else %}#d1d5db{% endif %}; border-radius: 6px;"
+                        >
+                            <option value="Male" {% if form_data.get('Gender', 'Male') == 'Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if form_data.get('Gender') == 'Female' %}selected{% endif %}>Female</option>
+                        </select>
+                        {% if errors.get('Gender') %}
+                        <div class="error-msg" style="color: #e02424; font-size: 0.85rem; margin-top: 0.25rem;">
+                            {{ errors.get('Gender') }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 7. Married -->
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="Married" style="font-weight: 600; display: block; margin-bottom: 0.35rem;">
+                            Marital Status
+                        </label>
+                        <select 
+                            id="Married" 
+                            name="Married" 
+                            class="form-control" 
+                            style="width: 100%; padding: 0.6rem; border: 1px solid {% if errors.get('Married') %}#e02424{% else %}#d1d5db{% endif %}; border-radius: 6px;"
+                        >
+                            <option value="Yes" {% if form_data.get('Married', 'Yes') == 'Yes' %}selected{% endif %}>Yes (Married)</option>
+                            <option value="No" {% if form_data.get('Married') == 'No' %}selected{% endif %}>No (Single)</option>
+                        </select>
+                        {% if errors.get('Married') %}
+                        <div class="error-msg" style="color: #e02424; font-size: 0.85rem; margin-top: 0.25rem;">
+                            {{ errors.get('Married') }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 8. Dependents -->
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="Dependents" style="font-weight: 600; display: block; margin-bottom: 0.35rem;">
+                            Number of Dependents
+                        </label>
+                        <select 
+                            id="Dependents" 
+                            name="Dependents" 
+                            class="form-control" 
+                            style="width: 100%; padding: 0.6rem; border: 1px solid {% if errors.get('Dependents') %}#e02424{% else %}#d1d5db{% endif %}; border-radius: 6px;"
+                        >
+                            <option value="0" {% if form_data.get('Dependents', '0') == '0' %}selected{% endif %}>0</option>
+                            <option value="1" {% if form_data.get('Dependents') == '1' %}selected{% endif %}>1</option>
+                            <option value="2" {% if form_data.get('Dependents') == '2' %}selected{% endif %}>2</option>
+                            <option value="3+" {% if form_data.get('Dependents') in ('3', '3+') %}selected{% endif %}>3+</option>
+                        </select>
+                        {% if errors.get('Dependents') %}
+                        <div class="error-msg" style="color: #e02424; font-size: 0.85rem; margin-top: 0.25rem;">
+                            {{ errors.get('Dependents') }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 9. Education -->
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="Education" style="font-weight: 600; display: block; margin-bottom: 0.35rem;">
+                            Education Level
+                        </label>
+                        <select 
+                            id="Education" 
+                            name="Education" 
+                            class="form-control" 
+                            style="width: 100%; padding: 0.6rem; border: 1px solid {% if errors.get('Education') %}#e02424{% else %}#d1d5db{% endif %}; border-radius: 6px;"
+                        >
+                            <option value="Graduate" {% if form_data.get('Education', 'Graduate') == 'Graduate' %}selected{% endif %}>Graduate</option>
+                            <option value="Not Graduate" {% if form_data.get('Education') == 'Not Graduate' %}selected{% endif %}>Not Graduate</option>
+                        </select>
+                        {% if errors.get('Education') %}
+                        <div class="error-msg" style="color: #e02424; font-size: 0.85rem; margin-top: 0.25rem;">
+                            {{ errors.get('Education') }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 10. Self_Employed -->
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="Self_Employed" style="font-weight: 600; display: block; margin-bottom: 0.35rem;">
+                            Self Employed?
+                        </label>
+                        <select 
+                            id="Self_Employed" 
+                            name="Self_Employed" 
+                            class="form-control" 
+                            style="width: 100%; padding: 0.6rem; border: 1px solid {% if errors.get('Self_Employed') %}#e02424{% else %}#d1d5db{% endif %}; border-radius: 6px;"
+                        >
+                            <option value="No" {% if form_data.get('Self_Employed', 'No') == 'No' %}selected{% endif %}>No (Salaried)</option>
+                            <option value="Yes" {% if form_data.get('Self_Employed') == 'Yes' %}selected{% endif %}>Yes (Self Employed)</option>
+                        </select>
+                        {% if errors.get('Self_Employed') %}
+                        <div class="error-msg" style="color: #e02424; font-size: 0.85rem; margin-top: 0.25rem;">
+                            {{ errors.get('Self_Employed') }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 11. Property_Area -->
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="Property_Area" style="font-weight: 600; display: block; margin-bottom: 0.35rem;">
+                            Property Location Area
+                        </label>
+                        <select 
+                            id="Property_Area" 
+                            name="Property_Area" 
+                            class="form-control" 
+                            style="width: 100%; padding: 0.6rem; border: 1px solid {% if errors.get('Property_Area') %}#e02424{% else %}#d1d5db{% endif %}; border-radius: 6px;"
+                        >
+                            <option value="Semiurban" {% if form_data.get('Property_Area', 'Semiurban') == 'Semiurban' %}selected{% endif %}>Semiurban</option>
+                            <option value="Urban" {% if form_data.get('Property_Area') == 'Urban' %}selected{% endif %}>Urban</option>
+                            <option value="Rural" {% if form_data.get('Property_Area') == 'Rural' %}selected{% endif %}>Rural</option>
+                        </select>
+                        {% if errors.get('Property_Area') %}
+                        <div class="error-msg" style="color: #e02424; font-size: 0.85rem; margin-top: 0.25rem;">
+                            {{ errors.get('Property_Area') }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+                <button type="reset" class="btn btn-outline" style="padding: 0.75rem 1.5rem; border: 1px solid #d1d5db; background: transparent; border-radius: 6px; cursor: pointer;">
+                    Reset Form
+                </button>
+                <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; background-color: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                    🔮 Evaluate Application
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

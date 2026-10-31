@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}About & Methodology{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 900px; margin: 0 auto 2rem;">
+    <div class="card-header">
+        <h2>About the Loan Approval Prediction Project</h2>
+        <p class="card-subtitle">Course: Machine Learning &bull; Section: 6B &bull; B.Tech Computer Science & Engineering</p>
+    </div>
+
+    <div style="margin-bottom: 2rem;">
+        <h3 style="color: var(--primary); margin-bottom: 0.5rem;">🎯 Problem Statement</h3>
+        <p>
+            Commercial banks and lending institutions process thousands of loan applications annually. Assessing loan default risk manually is time-consuming, subjective, and prone to human inconsistency. The objective of this project is to build an automated, transparent, and accurate binary classification system to predict whether a prospective applicant is <strong>"Likely Approved"</strong> or <strong>"Likely Rejected"</strong> based on verified creditworthiness, household income, and requested loan terms.
+        </p>
+    </div>
+
+    <div style="margin-bottom: 2rem;">
+        <h3 style="color: var(--primary); margin-bottom: 0.5rem;">🌳 Machine Learning Algorithm: Decision Tree Classifier</h3>
+        <p>
+            We utilize scikit-learn's <code>DecisionTreeClassifier</code>. A decision tree creates a flowchart-like tree structure where each internal node denotes a test on an attribute (e.g., <em>Credit History == 1</em>), each branch represents the outcome of the test, and each leaf node holds a class label.
+        </p>
+        <div style="margin-top: 1rem; background: #f8fafc; padding: 1rem; border-radius: var(--radius-sm); border-left: 4px solid var(--primary-light);">
+            <strong>Why Gini Impurity?</strong><br>
+            The algorithm measures the impurity of a node using Gini Impurity:
+            <br>
+            <code>Gini = 1 - &Sigma; (p_i)&sup2;</code>
+            <br>
+            At each split, the feature and threshold that maximize information gain (i.e., produce the purest child nodes) are selected.
+        </div>
+    </div>
+
+    <div style="margin-bottom: 2rem;">
+        <h3 style="color: var(--primary); margin-bottom: 0.5rem;">🛡️ Ethical Machine Learning: Eliminating Bias</h3>
+        <p>
+            Responsible AI requires careful feature selection to prevent demographic discrimination:
+        </p>
+        <ul style="margin-left: 1.5rem; margin-top: 0.5rem; line-height: 1.8;">
+            <li><strong>Loan_ID dropped:</strong> Arbitrary identifier with zero predictive value that would only introduce spurious correlations.</li>
+            <li><strong>Gender dropped:</strong> Excluded intentionally from the feature matrix to eliminate gender-based demographic bias and adhere to fair lending standards.</li>
+            <li><strong>Strict Feature Isolation:</strong> The system relies strictly on 10 objective financial and risk attributes: ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term, Credit_History, Self_Employed, Married, Education, Dependents, and Property_Area.</li>
+        </ul>
+    </div>
+
+    <div style="margin-bottom: 2rem;">
+        <h3 style="color: var(--primary); margin-bottom: 0.5rem;">⚙️ Data Preprocessing & Leakage Prevention</h3>
+        <p>
+            To prevent statistical data leakage, the dataset is partitioned into an 80% training set and 20% test set <em>before</em> any imputation or encoding parameters are calculated:
+        </p>
+        <ul style="margin-left: 1.5rem; margin-top: 0.5rem; line-height: 1.8;">
+            <li><strong>Stratified Split:</strong> Preserves the ~69% to 31% target distribution across both train and test partitions.</li>
+            <li><strong>Numeric Imputation:</strong> Uses median replacement to resist outliers in income and loan amounts.</li>
+            <li><strong>Categorical Encoding:</strong> Uses most-frequent imputation and scikit-learn's <code>OneHotEncoder(handle_unknown='ignore')</code> wrapped in a <code>ColumnTransformer</code> inside an end-to-end <code>Pipeline</code>.</li>
+        </ul>
+    </div>
+
+    <div style="margin-bottom: 2rem;">
+        <h3 style="color: var(--primary); margin-bottom: 0.5rem;">⚠️ Limitations & Future Work</h3>
+        <ul style="margin-left: 1.5rem; margin-top: 0.5rem; line-height: 1.8;">
+            <li><strong>Loan Term Extrapolation:</strong> Users can enter any term from 1 month to 40 years; however, the training data contains almost no short-term loans (0 under 12 months, 1 at 12 months, 83.4% at 360 months), so predictions under 12 months are extrapolations and less reliable for educational study, not bank decisions.</li>
+            <li><strong>Small Sample Size:</strong> 614 rows in the original benchmark Kaggle dataset means certain combinations of categories have few observations.</li>
+            <li><strong>Class Imbalance:</strong> ~69% approval rate requires monitoring recall and false positive rates rather than relying solely on raw accuracy.</li>
+            <li><strong>Educational Purpose:</strong> Built strictly for educational and instructional demonstration. Real-world underwriting requires rigorous compliance with financial regulatory bodies (e.g., Fair Credit Reporting Act).</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

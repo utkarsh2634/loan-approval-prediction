@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Assessment Result - {{ result.result_label }}{% endblock %}
+
+{% block content %}
+<div class="result-container">
+    <div class="card result-card {% if result.prediction == 1 %}result-approved{% else %}result-rejected{% endif %}">
+        <div class="result-badge">
+            {% if result.prediction == 1 %}
+            ✅ Likely Approved
+            {% else %}
+            ❌ Likely Rejected
+            {% endif %}
+        </div>
+        <p style="font-size: 1.1rem; color: var(--text-muted); margin-top: 0.25rem;">
+            Automated Risk Score Assessment
+        </p>
+
+        <!-- Probability Progress Bar -->
+        <div class="probability-bar-wrapper">
+            <div class="prob-labels">
+                <span>Model Confidence</span>
+                <span>
+                    {% if result.prediction == 1 %}
+                    {{ result.approval_probability }}% Approval Probability
+                    {% else %}
+                    {{ result.rejection_probability }}% Rejection Risk
+                    {% endif %}
+                </span>
+            </div>
+            <div class="progress-track">
+                <div 
+                    class="progress-fill {% if result.prediction == 1 %}progress-approved{% else %}progress-rejected{% endif %}"
+                    style="width: {% if result.prediction == 1 %}{{ result.approval_probability }}{% else %}{{ result.rejection_probability }}{% endif %}%;"
+                ></div>
+            </div>
+        </div>
+
+        <!-- Plain-English Explanation -->
+        <div class="explanation-box">
+            <h4>💡 Assessment Rationale</h4>
+            <p>{{ result.explanation }}</p>
+        </div>
+
+        {% if result.term_warning %}
+        <!-- Non-blocking Warning for Extrapolated/Rare Loan Term -->
+        <div class="term-warning-box">
+            <span class="warning-icon">⚠️</span>
+            <div>
+                <strong>Notice on Loan Term:</strong> {{ result.term_warning }}
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+            <a href="{{ url_for('predict') }}" class="btn btn-primary">🔄 Test Another Application</a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline">📊 Inspect Model Metrics</a>
+        </div>
+    </div>
+
+    <!-- Applicant Input Summary Table -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Applicant Submitted Profile</h3>
+            <p class="card-subtitle">Values submitted for evaluation against the Decision Tree model</p>
+        </div>
+        <table class="data-table">
+            <tbody>
+                <tr>
+                    <th>Applicant Monthly Income</th>
+                    <td>${{ "{:,.0f}".format(input_data.ApplicantIncome) }}</td>
+                </tr>
+                <tr>
+                    <th>Co-applicant Monthly Income</th>
+                    <td>${{ "{:,.0f}".format(input_data.CoapplicantIncome) }}</td>
+                </tr>
+                <tr>
+                    <th>Total Household Income</th>
+                    <td>${{ "{:,.0f}".format(input_data.ApplicantIncome + input_data.CoapplicantIncome) }}</td>
+                </tr>
+                <tr>
+                    <th>Requested Loan Amount</th>
+                    <td>${{ "{:,.0f}".format(input_data.LoanAmount * 1000) }} ({{ input_data.LoanAmount }} thousands)</td>
+                </tr>
+                <tr>
+                    <th>Amortization Term</th>
+                    <td>{{ "{:.0f}".format(input_data.Loan_Amount_Term) }} Months ({{ "{:.1f}".format(input_data.Loan_Amount_Term / 12) }} Years)</td>
+                </tr>
+                <tr>
+                    <th>Credit History Status</th>
+                    <td>
+                        {% if input_data.Credit_History == '1' %}
+                        <span style="color: var(--success); font-weight: 600;">✅ Positive (Meets Guidelines)</span>
+                        {% else %}
+                        <span style="color: var(--danger); font-weight: 600;">⚠️ Negative (Delinquency / No Record)</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Employment Type</th>
+                    <td>{{ "Self Employed" if input_data.Self_Employed == 'Yes' else "Salaried / Employed" }}</td>
+                </tr>
+                <tr>
+                    <th>Marital Status</th>
+                    <td>{{ "Married" if input_data.Married == 'Yes' else "Single" }}</td>
+                </tr>
+                <tr>
+                    <th>Education Level</th>
+                    <td>{{ input_data.Education }}</td>
+                </tr>
+                <tr>
+                    <th>Number of Dependents</th>
+                    <td>{{ input_data.Dependents }}</td>
+                </tr>
+                <tr>
+                    <th>Property Area</th>
+                    <td>{{ input_data.Property_Area }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="disclaimer-banner">
+        <span>⚠️</span>
+        <span><strong>Disclaimer:</strong> {{ result.disclaimer }}</span>
+    </div>
+</div>
+{% endblock %}

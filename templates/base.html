@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Loan Approval Prediction{% endblock %} | Section 6B</title>
+    <meta name="description" content="Machine Learning Decision Tree application for predicting loan approval risk assessment.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% if is_synthetic %}
+    <div class="banner-synthetic">
+        ⚠️ SYNTHETIC DATA — Model was trained on demonstration data only. Results are illustrative.
+    </div>
+    {% endif %}
+
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="nav-brand">
+                <span>🏦 LoanAI</span>
+                <span class="nav-badge">Sec 6B</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
+                    <li><a href="{{ url_for('predict') }}" class="{% if request.endpoint == 'predict' %}active{% endif %}">Predict Loan</a></li>
+                    <li><a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Model Dashboard</a></li>
+                    <li><a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">About & Methodology</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="disclaimer-banner" style="max-width: 900px; margin: 0 auto 1rem;">
+            <span>ℹ️</span>
+            <span><strong>Educational Disclaimer:</strong> This is an educational prediction created for B.Tech CSE Section 6B, not an actual bank decision or a guarantee of loan approval.</span>
+        </div>
+        <p>&copy; 2026 Loan Approval Prediction System &bull; Decision Tree Classifier &bull; Scikit-Learn &bull; Flask</p>
+    </footer>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

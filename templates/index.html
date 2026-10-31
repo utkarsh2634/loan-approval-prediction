@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>Loan Approval Prediction System</h1>
+    <p>Automating banking risk assessment through Machine Learning. Powered by a calibrated Decision Tree Classifier trained on applicant financial and credit history.</p>
+    <div class="hero-actions">
+        <a href="{{ url_for('predict') }}" class="btn btn-secondary">🚀 Test an Applicant</a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.4);">📊 View Model Performance</a>
+    </div>
+</section>
+
+{% if not model_loaded %}
+<div class="card" style="border-left: 4px solid var(--warning); background-color: var(--warning-bg);">
+    <h3>⚠️ Model Artifact Not Loaded</h3>
+    <p style="margin-top: 0.5rem;">The model binary was not found in <code>models/loan_model.joblib</code>. Please run the training script from your terminal:</p>
+    <div class="code-box">python train_model.py</div>
+</div>
+{% endif %}
+
+<section class="features-grid">
+    <div class="feature-box">
+        <div class="feature-icon">🌳</div>
+        <h3>Interpretable Decision Tree</h3>
+        <p>Uses a tuned scikit-learn Decision Tree with pruned depth to prevent overfitting, making credit decisions transparent and audit-friendly.</p>
+    </div>
+
+    <div class="feature-box">
+        <div class="feature-icon">🛡️</div>
+        <h3>Bias-Conscious Features</h3>
+        <p>Identifiers (Loan_ID) and demographic attributes (Gender) are strictly excluded from the feature space to prevent algorithmic bias.</p>
+    </div>
+
+    <div class="feature-box">
+        <div class="feature-icon">📈</div>
+        <h3>Tuned & Validated</h3>
+        <p>Optimized with 5-Fold Stratified Cross-Validation on the training set, evaluated against a majority-class dummy baseline.</p>
+    </div>
+</section>
+
+<div class="card">
+    <div class="card-header">
+        <h2>System Architecture & Pipeline Flow</h2>
+        <p class="card-subtitle">End-to-end workflow from applicant input to probability estimate</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; text-align: center;">
+        <div style="padding: 1rem; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <div style="font-weight: 700; color: var(--primary);">1. Data Ingestion</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Server-side validation ensures numeric bounds & categorical validity.</p>
+        </div>
+        <div style="padding: 1rem; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <div style="font-weight: 700; color: var(--primary);">2. Preprocessing</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Median imputation for numeric features & One-Hot Encoding for categories.</p>
+        </div>
+        <div style="padding: 1rem; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <div style="font-weight: 700; color: var(--primary);">3. Decision Tree Split</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Evaluates Gini impurity splits primarily anchored on credit history.</p>
+        </div>
+        <div style="padding: 1rem; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <div style="font-weight: 700; color: var(--primary);">4. Risk Assessment</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Outputs probability estimate, approval classification, and rationale.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
